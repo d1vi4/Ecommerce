@@ -71,7 +71,7 @@ public class OrderService {
 
         order.setTotalPrice(totalAmount);
         OrderEntity savedOrder = orderRepository.save(order);
-        
+
         for (OrderItemEntity item : orderItems) {
             item.setOrder(savedOrder);
             orderItemRepository.save(item);
@@ -87,7 +87,11 @@ public class OrderService {
                 .collect(Collectors.toList());
     }
 
-    private OrderResponse mapToResponse(OrderEntity entity) {
+    public List<OrderEntity> getAllOrders() {
+        return orderRepository.findAll();
+    }
+
+    public OrderResponse mapToResponse(OrderEntity entity) {
         OrderResponse response = new OrderResponse();
         response.setOrderId(entity.getId());
         response.setOrderDate(entity.getOrderDate());

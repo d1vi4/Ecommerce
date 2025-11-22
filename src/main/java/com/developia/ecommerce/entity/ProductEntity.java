@@ -1,6 +1,6 @@
 package com.developia.ecommerce.entity;
 
-import jakarta.persistence.*; 
+import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -35,6 +35,9 @@ public class ProductEntity {
 
     @Column(name = "yaradilma_tarixi")
     private LocalDateTime createdDate = LocalDateTime.now();
+
+    @Column(name = "orta_reytinq")
+    private Double averageRating = 0.0;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "kateqoriya_id", nullable = false)

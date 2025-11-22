@@ -3,6 +3,7 @@ package com.developia.ecommerce.service;
 import com.developia.ecommerce.entity.ClientEntity;
 import com.developia.ecommerce.entity.ProductEntity;
 import com.developia.ecommerce.repository.ProductRepository;
+import com.developia.ecommerce.repository.RatingRepository;
 import com.developia.ecommerce.dto.ProductRequest;
 import com.developia.ecommerce.dto.ProductResponse;
 import com.developia.ecommerce.exception.CustomExceptions;
@@ -19,11 +20,13 @@ import java.util.stream.Collectors;
 public class ProductService {
 
     private final ProductRepository productRepository;
-    private final CategoryService categoryService; 
+    private final CategoryService categoryService;
+    private final RatingRepository ratingRepository;
 
-    public ProductService(ProductRepository productRepository, CategoryService categoryService) {
+    public ProductService(ProductRepository productRepository, CategoryService categoryService, RatingRepository ratingRepository) {
         this.productRepository = productRepository;
         this.categoryService = categoryService;
+        this.ratingRepository = ratingRepository;
     }
 
     @Transactional
@@ -31,7 +34,7 @@ public class ProductService {
         ProductEntity product = new ProductEntity();
 
         product.setCategory(categoryService.findCategoryById(request.getCategoryId()));
-        
+
         product.setTitle(request.getTitle());
         product.setDescription(request.getDescription());
         product.setPrice(request.getPrice());
@@ -47,7 +50,7 @@ public class ProductService {
         ProductEntity existingProduct = productRepository.findById(productId)
                 .orElseThrow(() -> new CustomExceptions.ResourceNotFoundException("Mehsul", "id", productId));
 
-       
+
         if (!existingProduct.getSeller().getId().equals(seller.getId())) {
             throw new CustomExceptions.InvalidCredentialsException();
         }
@@ -61,7 +64,7 @@ public class ProductService {
 
         return mapToResponse(productRepository.save(existingProduct));
     }
-    
+
 
     public List<ProductResponse> getProductsBySeller(ClientEntity seller) {
         return productRepository.findAllBySeller(seller).stream()
@@ -76,13 +79,25 @@ public class ProductService {
                 .map(this::mapToResponse);
     }
 
+    @Transactional
+    public void updateAverageRating(Long productId) {
+        ProductEntity product = findProductEntityById(productId);
+        Double averageRating = ratingRepository.findAllByProduct(product).stream()
+                .mapToInt(rating -> rating.getRating())
+                .average()
+                .orElse(0.0);
+
+        product.setAverageRating(Math.round(averageRating * 100.0) / 100.0);
+        productRepository.save(product);
+    }
+
     public void deleteProduct(Long productId, ClientEntity seller) {
         ProductEntity product = productRepository.findById(productId)
                 .orElseThrow(() -> new CustomExceptions.ResourceNotFoundException("Mehsul", "id", productId));
 
-       
+
         if (!product.getSeller().getId().equals(seller.getId())) {
-            throw new CustomExceptions.InvalidCredentialsException(); 
+            throw new CustomExceptions.InvalidCredentialsException();
         }
 
         productRepository.delete(product);
@@ -99,9 +114,10 @@ public class ProductService {
         response.setImageUrl(entity.getImageUrl());
         response.setCategoryName(entity.getCategory().getName());
         response.setSellerUsername(entity.getSeller().getUsername());
+        response.setAverageRating(entity.getAverageRating());
         return response;
     }
-    
+
     public ProductEntity findProductEntityById(Long productId) {
         return productRepository.findById(productId)
                 .orElseThrow(() -> new CustomExceptions.ResourceNotFoundException("Mehsul", "id", productId));

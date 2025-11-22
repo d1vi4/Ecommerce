@@ -18,4 +18,5 @@ public class ProductResponse {
     private String imageUrl;
     private String categoryName;
     private String sellerUsername;
+    private Double averageRating;
 }

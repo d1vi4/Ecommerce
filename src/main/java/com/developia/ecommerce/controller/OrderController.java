@@ -4,14 +4,16 @@ import com.developia.ecommerce.dto.OrderRequest;
 import com.developia.ecommerce.dto.OrderResponse;
 import com.developia.ecommerce.service.OrderService;
 import com.developia.ecommerce.service.ClientService;
+import com.developia.ecommerce.entity.ClientEntity;
 import com.developia.ecommerce.exception.CustomExceptions;
-import com.developia.ecommerce.config.JwtTokenProvider; 
+import com.developia.ecommerce.config.JwtTokenProvider;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -51,10 +53,24 @@ public class OrderController {
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
 
-    @GetMapping("/history")
+    @GetMapping("/by-customer-orders")
     public ResponseEntity<List<OrderResponse>> getOrderHistory(@RequestHeader(name = "Authorization") String authHeader) {
         String username = checkAuthAndGetUsername(authHeader);
         List<OrderResponse> history = orderService.sifarisTarixcesiniAl(username);
         return ResponseEntity.ok(history);
+    }
+
+    @GetMapping("/owner-sales")
+    public ResponseEntity<List<OrderResponse>> getOwnerSales(@RequestHeader(name = "Authorization") String authHeader) {
+        String username = checkAuthAndGetUsername(authHeader);
+        ClientEntity seller = clientService.getClientEntityByUsername(username);
+
+
+        List<OrderResponse> allOrders = orderService.getAllOrders().stream()
+                .filter(order -> order.getItems().stream().anyMatch(item -> item.getProduct().getSeller().getId().equals(seller.getId())))
+                .map(orderService::mapToResponse)
+                .collect(Collectors.toList());
+        
+        return ResponseEntity.ok(allOrders);
     }
 }

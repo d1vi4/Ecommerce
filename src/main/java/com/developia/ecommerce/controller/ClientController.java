@@ -7,7 +7,7 @@ import com.developia.ecommerce.dto.ClientResponse;
 import com.developia.ecommerce.entity.ClientEntity;
 import com.developia.ecommerce.service.ClientService;
 import com.developia.ecommerce.exception.CustomExceptions;
-import com.developia.ecommerce.config.JwtTokenProvider; 
+import com.developia.ecommerce.config.JwtTokenProvider;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -56,14 +56,14 @@ public class ClientController {
 
     @PostMapping("/login")
     public ResponseEntity<AuthResponse> loginClient(@Validated @RequestBody ClientLoginRequest request) {
-        
+
         Authentication authentication = authenticationManager.authenticate(
             new UsernamePasswordAuthenticationToken(
                 request.getUsername(),
                 request.getPassword()
             )
         );
-        
+
         SecurityContextHolder.getContext().setAuthentication(authentication);
         String token = jwtTokenProvider.generateToken(authentication);
 
@@ -77,8 +77,8 @@ public class ClientController {
                 token
         ), HttpStatus.OK);
     }
-    
-    @GetMapping("/profile")
+
+    @GetMapping("/get-details")
     public ResponseEntity<ClientResponse> getProfile(@RequestHeader(name = "Authorization") String authHeader) {
         String username = checkAuthAndGetUsername(authHeader);
         ClientResponse response = clientService.getClientProfileByUsername(username);

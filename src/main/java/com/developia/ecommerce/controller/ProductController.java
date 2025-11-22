@@ -2,13 +2,11 @@ package com.developia.ecommerce.controller;
 
 import com.developia.ecommerce.dto.ProductRequest;
 import com.developia.ecommerce.dto.ProductResponse;
-import com.developia.ecommerce.dto.CategoryResponse;
 import com.developia.ecommerce.service.ProductService;
 import com.developia.ecommerce.service.ClientService;
-import com.developia.ecommerce.service.CategoryService;
 import com.developia.ecommerce.entity.ClientEntity;
 import com.developia.ecommerce.exception.CustomExceptions;
-import com.developia.ecommerce.config.JwtTokenProvider; 
+import com.developia.ecommerce.config.JwtTokenProvider;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,13 +21,11 @@ public class ProductController {
 
     private final ProductService productService;
     private final ClientService clientService;
-    private final CategoryService categoryService;
     private final JwtTokenProvider jwtTokenProvider;
 
-    public ProductController(ProductService productService, ClientService clientService, CategoryService categoryService, JwtTokenProvider jwtTokenProvider) {
+    public ProductController(ProductService productService, ClientService clientService, JwtTokenProvider jwtTokenProvider) {
         this.productService = productService;
         this.clientService = clientService;
-        this.categoryService = categoryService;
         this.jwtTokenProvider = jwtTokenProvider;
     }
 
@@ -77,11 +73,19 @@ public class ProductController {
         return ResponseEntity.ok(response);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/delete/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void deleteProduct(@PathVariable Long id, @RequestHeader(name = "Authorization") String authHeader) {
         String username = checkAuthAndGetUsername(authHeader);
         ClientEntity seller = clientService.getClientEntityByUsername(username);
         productService.deleteProduct(id, seller);
+    }
+
+    @GetMapping("/myProducts")
+    public ResponseEntity<List<ProductResponse>> getMyProducts(@RequestHeader(name = "Authorization") String authHeader) {
+        String username = checkAuthAndGetUsername(authHeader);
+        ClientEntity seller = clientService.getClientEntityByUsername(username);
+        List<ProductResponse> products = productService.getProductsBySeller(seller);
+        return ResponseEntity.ok(products);
     }
 }
