@@ -13,7 +13,6 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -65,12 +64,8 @@ public class OrderController {
         String username = checkAuthAndGetUsername(authHeader);
         ClientEntity seller = clientService.getClientEntityByUsername(username);
 
-
-        List<OrderResponse> allOrders = orderService.getAllOrders().stream()
-                .filter(order -> order.getItems().stream().anyMatch(item -> item.getProduct().getSeller().getId().equals(seller.getId())))
-                .map(orderService::mapToResponse)
-                .collect(Collectors.toList());
+        List<OrderResponse> sales = orderService.findOrdersBySeller(seller.getId());
         
-        return ResponseEntity.ok(allOrders);
+        return ResponseEntity.ok(sales);
     }
 }

@@ -4,7 +4,6 @@ import com.developia.ecommerce.entity.ClientEntity;
 import com.developia.ecommerce.entity.OrderEntity;
 import com.developia.ecommerce.entity.OrderItemEntity;
 import com.developia.ecommerce.entity.ProductEntity;
-import com.developia.ecommerce.repository.OrderItemRepository;
 import com.developia.ecommerce.repository.OrderRepository;
 import com.developia.ecommerce.dto.CheckoutItemRequest;
 import com.developia.ecommerce.dto.OrderRequest;
@@ -22,13 +21,11 @@ import java.util.stream.Collectors;
 public class OrderService {
 
     private final OrderRepository orderRepository;
-    private final OrderItemRepository orderItemRepository;
     private final ProductService productService;
     private final ClientService clientService;
 
-    public OrderService(OrderRepository orderRepository, OrderItemRepository orderItemRepository, ProductService productService, ClientService clientService) {
+    public OrderService(OrderRepository orderRepository, ProductService productService, ClientService clientService) {
         this.orderRepository = orderRepository;
-        this.orderItemRepository = orderItemRepository;
         this.productService = productService;
         this.clientService = clientService;
     }
@@ -70,12 +67,10 @@ public class OrderService {
         }
 
         order.setTotalPrice(totalAmount);
-        OrderEntity savedOrder = orderRepository.save(order);
+        order.setItems(orderItems);
 
-        for (OrderItemEntity item : orderItems) {
-            item.setOrder(savedOrder);
-            orderItemRepository.save(item);
-        }
+   
+        OrderEntity savedOrder = orderRepository.save(order);
 
         return mapToResponse(savedOrder);
     }
@@ -86,9 +81,10 @@ public class OrderService {
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
-
-    public List<OrderEntity> getAllOrders() {
-        return orderRepository.findAll();
+    public List<OrderResponse> findOrdersBySeller(Long sellerId) {
+        return orderRepository.findOrdersBySellerId(sellerId).stream()
+                .map(this::mapToResponse)
+                .collect(Collectors.toList());
     }
 
     public OrderResponse mapToResponse(OrderEntity entity) {
@@ -97,6 +93,24 @@ public class OrderService {
         response.setOrderDate(entity.getOrderDate());
         response.setTotalPrice(entity.getTotalPrice());
         response.setStatus(entity.getStatus());
+
+        if (entity.getItems() != null) {
+            List<OrderResponse.OrderItemDTO> itemDTOs = entity.getItems().stream()
+                .map(item -> new OrderResponse.OrderItemDTO(
+                    item.getProduct().getId(),
+                    item.getProduct().getTitle(),
+                    item.getProduct().getImageUrl(),
+                    item.getQuantity(),
+                    item.getPriceAtOrder()
+                ))
+                .collect(Collectors.toList());
+            response.setItems(itemDTOs);
+        }
+        
         return response;
+    }
+    
+    public List<OrderEntity> getAllOrders() {
+        return orderRepository.findAll();
     }
 }

@@ -6,12 +6,12 @@ import com.developia.ecommerce.entity.ReviewEntity;
 import com.developia.ecommerce.repository.ReviewRepository;
 import com.developia.ecommerce.dto.ReviewRequestDTO;
 import com.developia.ecommerce.dto.ReviewResponseDTO;
+import com.developia.ecommerce.exception.CustomExceptions;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import java.util.stream.Collectors;
 
 @Service
 public class ReviewService {
@@ -30,6 +30,11 @@ public class ReviewService {
     public ReviewResponseDTO addReview(ReviewRequestDTO request, String username) {
         ProductEntity product = productService.findProductEntityById(request.getProductId());
         ClientEntity client = clientService.getClientEntityByUsername(username);
+
+   
+        if (reviewRepository.existsByClientAndProduct(client, product)) {
+            throw new CustomExceptions.DuplicateResourceException("Rəy (Отзыв)", "Məhsul ID", request.getProductId());
+        }
 
         ReviewEntity review = new ReviewEntity();
         review.setProduct(product);

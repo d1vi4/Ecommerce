@@ -9,6 +9,8 @@ import com.developia.ecommerce.exception.CustomExceptions;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @Service
 public class RatingService {
 
@@ -26,10 +28,15 @@ public class RatingService {
     public void addOrUpdateRating(RatingRequestDTO request, String username) {
         ProductEntity product = productService.findProductEntityById(request.getProductId());
         ClientEntity client = clientService.getClientEntityByUsername(username);
+        
+        Optional<RatingEntity> existingRating = ratingRepository.findByClientAndProduct(client, product);
 
-        RatingEntity ratingEntity = ratingRepository.findByClientAndProduct(client, product)
-                .orElse(new RatingEntity());
+        if (existingRating.isPresent()) {
+          
+            throw new CustomExceptions.DuplicateResourceException("Reytinq", "Məhsul ID", request.getProductId());
+        }
 
+        RatingEntity ratingEntity = new RatingEntity();
         ratingEntity.setProduct(product);
         ratingEntity.setClient(client);
         ratingEntity.setRating(request.getRating());
