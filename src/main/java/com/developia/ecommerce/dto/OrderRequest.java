@@ -1,8 +1,7 @@
 package com.developia.ecommerce.dto;
 
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
@@ -13,10 +12,21 @@ import java.util.List;
 @AllArgsConstructor
 public class OrderRequest {
 
-    @NotBlank(message = "Gonderis unvani bos ola bilmez.")
-    private String shippingAddress;
+    private String firstName;
+    private String lastName;
+    private Long stateId;
+    private String city;
+    private String address;
+    private Integer zip;
+    private String phone;
+    private String email;
+    private Boolean isAgree;
+    private Long cardNumber;
+    private Integer expirationMonth;
+    private Integer expirationYear;
+    private Integer cardSecurityCode;
 
-    @NotEmpty(message = "Sifaris mehsulsuz ola bilmez.")
+    @NotNull
     @Valid
-    private List<CheckoutItemRequest> items;
+    private List<CheckoutItemRequest> products;
 }

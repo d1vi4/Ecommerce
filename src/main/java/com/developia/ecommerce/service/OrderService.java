@@ -36,13 +36,23 @@ public class OrderService {
 
         OrderEntity order = new OrderEntity();
         order.setClient(client);
-        order.setShippingAddress(request.getShippingAddress());
         order.setStatus("Qebul edildi");
+
+        order.setFirstName(request.getFirstName());
+        order.setLastName(request.getLastName());
+        order.setStateId(request.getStateId());
+        order.setCity(request.getCity());
+        order.setAddress(request.getAddress());
+        order.setZip(request.getZip());
+        order.setPhone(request.getPhone());
+        order.setEmail(request.getEmail());
+        order.setIsAgree(request.getIsAgree());
+        order.setCardNumber(request.getCardNumber());
 
         BigDecimal totalAmount = BigDecimal.ZERO;
         List<OrderItemEntity> orderItems = new ArrayList<>();
 
-        for (CheckoutItemRequest itemRequest : request.getItems()) {
+        for (CheckoutItemRequest itemRequest : request.getProducts()) {
             ProductEntity product = productService.findProductEntityById(itemRequest.getProductId());
             Integer requestedQuantity = itemRequest.getQuantity();
 
@@ -69,7 +79,6 @@ public class OrderService {
         order.setTotalPrice(totalAmount);
         order.setItems(orderItems);
 
-   
         OrderEntity savedOrder = orderRepository.save(order);
 
         return mapToResponse(savedOrder);
@@ -81,6 +90,7 @@ public class OrderService {
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
+
     public List<OrderResponse> findOrdersBySeller(Long sellerId) {
         return orderRepository.findOrdersBySellerId(sellerId).stream()
                 .map(this::mapToResponse)
